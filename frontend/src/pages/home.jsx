@@ -312,7 +312,7 @@ export const Home = () => {
               </a>
             </nav>
             <Button className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold">
-              Connect Wallet
+              Get Started
             </Button>
           </div>
         </div>
@@ -351,9 +351,9 @@ export const Home = () => {
                   <Button
                     size="lg"
                     className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black px-8 py-4 text-lg transform hover:scale-105 transition-all duration-300 font-semibold"
-                  >
+                   Navigate to="/explore">
                     <Zap className="w-5 h-5 mr-2" />
-                    Explore Properties
+                    get
                   </Button>
                   <Button
                     size="lg"
