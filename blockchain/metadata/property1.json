@@ -1,0 +1,12 @@
+{
+  "name": "Ocean View Villa",
+  "description": "3-bedroom luxury villa with private pool",
+  "image": "ipfs://QmVilla123/villa.jpg",
+  "attributes": [
+    {"trait_type": "Price", "value": "1.5 ETH"},
+    {"trait_type": "Bedrooms", "value": 3},
+    {"trait_type": "Bathrooms", "value": 2.5},
+    {"trait_type": "Square Meters", "value": 220}
+  ],
+  "external_url": "https://yourplatform.com/properties/1"
+}
