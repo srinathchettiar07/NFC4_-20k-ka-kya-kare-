@@ -7,10 +7,12 @@ import Dashboard from './pages/dashboard.jsx';
 import Addproperty from './pages/addproperty.jsx';
 import PropertyDetail from './pages/PropertyDetail.jsx';
 import { useAuthStore } from './store/AuthStore.js';
+import { BlockchainProvider } from './components/BlockchainProvider.jsx';
 
 const App = () => {
   const {authUser } = useAuthStore();
   return (
+    <BlockchainProvider>
       <Routes>
         <Route path="/" element={ <Home/>}/>
         <Route path='/login' element={!authUser?<Login />:<Navigate to="/dashboard" />} />
@@ -20,6 +22,7 @@ const App = () => {
         <Route path='/addproperty' element={!authUser?<Navigate to="/login" />:<Addproperty/>} />
         <Route path="/property/:id" element={<PropertyDetail />} />
       </Routes>
+    </BlockchainProvider>
   );
 };
 

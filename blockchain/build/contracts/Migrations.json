@@ -17,7 +17,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -30,7 +31,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -628,7 +630,7 @@
   "sourceMap": "60:384:0:-:0;;;271:51;;;;;;;;;-1:-1:-1;296:5:0;:18;;-1:-1:-1;;;;;;296:18:0;304:10;296:18;;;60:384;;;;;;",
   "deployedSourceMap": "60:384:0:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;114:36;;;;;;;;;160:25:2;;;148:2;133:18;114:36:0;;;;;;;;87:20;;;;;-1:-1:-1;;;;;87:20:0;;;;;;-1:-1:-1;;;;;360:32:2;;;342:51;;330:2;315:18;87:20:0;196:203:2;330:111:0;;;;;;:::i;:::-;;:::i;:::-;;;214:5;;-1:-1:-1;;;;;214:5:0;200:10;:19;192:51;;;;-1:-1:-1;;;192:51:0;;791:2:2;192:51:0;;;773:21:2;830:2;810:18;;;803:30;-1:-1:-1;;;849:18:2;;;842:49;908:18;;192:51:0;;;;;;;;397:24:::1;:36:::0;330:111::o;404:180:2:-;463:6;516:2;504:9;495:7;491:23;487:32;484:52;;;532:1;529;522:12;484:52;-1:-1:-1;555:23:2;;404:180;-1:-1:-1;404:180:2:o",
   "source": "// SPDX-License-Identifier: MIT\r\npragma solidity ^0.8.0;\r\n\r\ncontract Migrations {\r\n    address public owner;\r\n    uint public last_completed_migration;\r\n\r\n    modifier restricted() {\r\n        require(msg.sender == owner, \"Restricted to owner\");\r\n        _;\r\n    }\r\n\r\n    constructor() {\r\n        owner = msg.sender;\r\n    }\r\n\r\n    function setCompleted(uint completed) public restricted {\r\n        last_completed_migration = completed;\r\n    }\r\n}",
-  "sourcePath": "C:\\Users\\admin\\Desktop\\20k-ka-kya-kare\\blockchain\\contracts\\Migrations.sol",
+  "sourcePath": "C:\\Users\\srina\\OneDrive\\Desktop\\20k-ka-kya-kare\\blockchain\\contracts\\Migrations.sol",
   "ast": {
     "absolutePath": "project:/contracts/Migrations.sol",
     "exportedSymbols": {
@@ -1098,9 +1100,17 @@
     "name": "solc",
     "version": "0.8.20+commit.a1b79de6.Emscripten.clang"
   },
-  "networks": {},
+  "networks": {
+    "5777": {
+      "events": {},
+      "links": {},
+      "address": "0x70531D70f684Df91C6DFaD213b8314D4c34073Ba",
+      "transactionHash": "0x10067ba55b1a5c9a46a9b0acd7168b879d40a493f4f6c9ee9c3a0c589d31b52a"
+    }
+  },
   "schemaVersion": "3.4.16",
-  "updatedAt": "2025-08-05T22:16:03.232Z",
+  "updatedAt": "2025-08-06T04:11:44.738Z",
+  "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",
     "methods": {},

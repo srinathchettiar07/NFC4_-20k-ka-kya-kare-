@@ -5,7 +5,7 @@ contract RealEstateChain {
     struct Property {
         address owner;
         string location;
-        uint256 price; // Price in ETH (e.g., 0.75 ETH = 750000000000000000 wei)
+        uint256 price; // Price in Wei
         bool isForSale;
         bool aiApproved;
         bool buyerApproved;
@@ -40,37 +40,35 @@ contract RealEstateChain {
     function registerProperty(
         string memory _location,
         string memory _metadataURI,
-        uint256 _priceInEth // Price in ETH units (e.g., 0.75 for 0.75 ETH)
+        uint256 _priceInWei // Now expects price in Wei directly
     ) external {
-        uint256 priceInWei = _priceInEth * 1 ether;
-        require(priceInWei >= 0.5 ether, "Minimum price is 0.5 ETH");
+        require(_priceInWei >= 0.5 ether, "Minimum price is 0.5 ETH");
         
         propertyCount++;
         properties[propertyCount] = Property({
             owner: msg.sender,
             location: _location,
-            price: priceInWei,
+            price: _priceInWei,
             isForSale: false,
             aiApproved: false,
             buyerApproved: false,
             sellerApproved: false,
             metadataURI: _metadataURI
         });
-        emit PropertyRegistered(propertyCount, msg.sender, _location, _metadataURI, priceInWei);
+        emit PropertyRegistered(propertyCount, msg.sender, _location, _metadataURI, _priceInWei);
     }
 
-    function updateListing(uint256 _propertyId, uint256 _newPriceInEth, bool _listForSale) external onlyOwner(_propertyId) {
-        uint256 priceInWei = _newPriceInEth * 1 ether;
-        require(priceInWei >= 0.5 ether, "Minimum price is 0.5 ETH");
+    function updateListing(uint256 _propertyId, uint256 _newPriceInWei, bool _listForSale) external onlyOwner(_propertyId) {
+        require(_newPriceInWei >= 0.5 ether, "Minimum price is 0.5 ETH");
         
-        properties[_propertyId].price = priceInWei;
+        properties[_propertyId].price = _newPriceInWei;
         properties[_propertyId].isForSale = _listForSale;
         if (_listForSale) {
             properties[_propertyId].aiApproved = false;
             properties[_propertyId].buyerApproved = false;
             properties[_propertyId].sellerApproved = false;
         }
-        emit PropertyListed(_propertyId, priceInWei);
+        emit PropertyListed(_propertyId, _newPriceInWei);
     }
 
     function approvePurchase(uint256 _propertyId, bool _approval) external {
@@ -112,27 +110,27 @@ contract RealEstateChain {
         // Transfer funds
         payable(previousOwner).transfer(msg.value);
         
-        emit PropertyTransferred(_propertyId, previousOwner, msg.sender);
+        emit PropertyTransferred(_propertyId, previousOwner, msg.sender, property.price);
     }
 
     function getPropertyDetails(uint256 _propertyId) external view returns (
-        address owner,
-        string memory location,
-        uint256 price,
-        bool isForSale,
-        bool aiApproved,
-        bool buyerApproved,
-        bool sellerApproved
-    ) {
-        Property memory property = properties[_propertyId];
-        return (
-            property.owner,
-            property.location,
-            property.price,
-            property.isForSale,
-            property.aiApproved,
-            property.buyerApproved,
-            property.sellerApproved
-        );
-    }
+    address owner,
+    string memory location,
+    uint256 price,
+    bool isForSale,
+    bool aiApproved,
+    bool buyerApproved,
+    bool sellerApproved
+) {
+    Property memory property = properties[_propertyId];
+    return (
+        property.owner,
+        property.location,
+        property.price,
+        property.isForSale,
+        property.aiApproved,
+        property.buyerApproved,
+        property.sellerApproved
+    );
+  }
 }

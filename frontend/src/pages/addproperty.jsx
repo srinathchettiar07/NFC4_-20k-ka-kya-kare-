@@ -3,8 +3,13 @@
 import React, { useState } from 'react';
 import Navbar from '../components/ui/navbar';
 import HeroBanner from '../components/ui/herobanner';
+import { useBlockchain } from '../components/BlockchainProvider.jsx';
+import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
 
 const PropertyForm = () => {
+  const { isConnected, registerProperty, loading: blockchainLoading, error: blockchainError } = useBlockchain();
+  
   const [formData, setFormData] = useState({
     title: '',
     location: '',
@@ -22,11 +27,11 @@ const PropertyForm = () => {
 
   const [legalDocuments, setLegalDocuments] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
-
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [submissionType, setSubmissionType] = useState('traditional'); // 'traditional' or 'blockchain'
 
   const propertyTypes = [
     { value: 'apartment', label: 'Apartment' },
@@ -111,7 +116,72 @@ const PropertyForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+  const handleBlockchainSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('');
+    
+    if (!validate()) {
+      setErrorMessage('Please fix the errors above before submitting.');
+      return;
+    }
+
+    if (!isConnected) {
+      setErrorMessage('Please connect your wallet to register property on blockchain.');
+      return;
+    }
+
+    try {
+      // Create metadata URI (in a real app, this would be uploaded to IPFS)
+      const metadata = {
+        title: formData.title,
+        location: formData.location,
+        price: parseFloat(formData.price),
+        sqft: parseFloat(formData.sqft),
+        bedrooms: parseInt(formData.bedrooms),
+        bathrooms: parseInt(formData.bathrooms),
+        yearBuilt: parseInt(formData.yearBuilt),
+        description: formData.description,
+        propertyType: formData.propertyType,
+        image: formData.image,
+        contactEmail: formData.contactEmail,
+        contactPhone: formData.contactPhone,
+        documents: legalDocuments.map(doc => doc.name)
+      };
+
+      // For demo purposes, we'll use a placeholder URI
+      const metadataURI = `ipfs://metadata/${Date.now()}.json`;
+      
+      // Convert USD price to ETH (simplified conversion)
+      const priceInEth = parseFloat(formData.price) / 2000; // Assuming 1 ETH = $2000 USD
+      
+      const result = await registerProperty(formData.location, metadataURI, priceInEth);
+      
+      setSuccessMessage(`Property registered on blockchain successfully! Transaction Hash: ${result.transactionHash}`);
+      
+      // Reset form
+      setFormData({
+        title: '',
+        location: '',
+        price: '',
+        sqft: '',
+        bedrooms: '',
+        bathrooms: '',
+        yearBuilt: '',
+        description: '',
+        propertyType: 'apartment',
+        image: '',
+        contactEmail: '',
+        contactPhone: '',
+      });
+      setLegalDocuments([]);
+    } catch (error) {
+      console.error('Error registering property on blockchain:', error);
+      setErrorMessage(error.message || 'Failed to register property on blockchain. Please try again.');
+    }
+  };
+
+  const handleTraditionalSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
     setSuccessMessage('');
@@ -181,6 +251,14 @@ const PropertyForm = () => {
     }
   };
 
+  const handleSubmit = (e) => {
+    if (submissionType === 'blockchain') {
+      handleBlockchainSubmit(e);
+    } else {
+      handleTraditionalSubmit(e);
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -193,9 +271,54 @@ const PropertyForm = () => {
               List Your Property
             </h1>
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Reach thousands of potential buyers. Fill out the form below to list your property with us.
+              Choose how you want to list your property - traditional backend or blockchain
             </p>
           </div>
+
+          {/* Submission Type Selection */}
+          <div className="mb-8">
+            <div className="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 p-6">
+              <h3 className="text-xl font-semibold text-white mb-4">Choose Submission Method</h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div 
+                  className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                    submissionType === 'traditional' 
+                      ? 'border-blue-500 bg-blue-500/10' 
+                      : 'border-white/20 bg-white/5'
+                  }`}
+                  onClick={() => setSubmissionType('traditional')}
+                >
+                  <h4 className="text-white font-semibold mb-2">Traditional Backend</h4>
+                  <p className="text-gray-300 text-sm">Store property data in database with file uploads</p>
+                  <Badge variant="secondary" className="mt-2">Recommended</Badge>
+                </div>
+                <div 
+                  className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                    submissionType === 'blockchain' 
+                      ? 'border-green-500 bg-green-500/10' 
+                      : 'border-white/20 bg-white/5'
+                  }`}
+                  onClick={() => setSubmissionType('blockchain')}
+                >
+                  <h4 className="text-white font-semibold mb-2">Blockchain</h4>
+                  <p className="text-gray-300 text-sm">Register property on Ethereum blockchain</p>
+                  {!isConnected && (
+                    <Badge variant="destructive" className="mt-2">Wallet Required</Badge>
+                  )}
+                  {isConnected && (
+                    <Badge variant="default" className="mt-2">Connected</Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Blockchain Error Display */}
+          {blockchainError && submissionType === 'blockchain' && (
+            <div className="mb-8 bg-red-500/20 border border-red-500/50 rounded-lg p-4">
+              <p className="text-red-400 font-semibold">{blockchainError}</p>
+            </div>
+          )}
 
           {/* Form Card */}
           <div className="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 p-8 shadow-2xl">
@@ -282,6 +405,11 @@ const PropertyForm = () => {
                   </div>
                   {errors.price && (
                     <p className="text-red-400 text-sm mt-1">{errors.price}</p>
+                  )}
+                  {submissionType === 'blockchain' && formData.price && (
+                    <p className="text-yellow-400 text-sm mt-1">
+                      ≈ {(parseFloat(formData.price) / 2000).toFixed(4)} ETH
+                    </p>
                   )}
                 </div>
 
@@ -449,82 +577,84 @@ const PropertyForm = () => {
                 </p>
               </div>
 
-              {/* Legal Documents Upload */}
-              <div>
-                <label className="block text-lg font-semibold text-white mb-2">
-                  Legal Documents
-                </label>
-                <div className="border-2 border-dashed border-white/20 rounded-lg p-6 bg-white/5 hover:bg-white/10 transition-all">
-                  <div className="text-center">
-                    <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    <div className="mt-4">
-                      <label htmlFor="file-upload" className="cursor-pointer">
-                        <span className="mt-2 block text-sm font-medium text-white">
-                          <span className="text-yellow-500 hover:text-yellow-400">Click to upload</span> or drag and drop
-                        </span>
-                        <span className="mt-1 block text-xs text-gray-400">
-                          PDF, JPEG, PNG files up to 10MB each
-                        </span>
-                      </label>
-                      <input
-                        id="file-upload"
-                        name="file-upload"
-                        type="file"
-                        multiple
-                        accept=".pdf,.jpg,.jpeg,.png"
-                        onChange={handleFileUpload}
-                        className="sr-only"
-                      />
+              {/* Legal Documents Upload - Only for Traditional */}
+              {submissionType === 'traditional' && (
+                <div>
+                  <label className="block text-lg font-semibold text-white mb-2">
+                    Legal Documents
+                  </label>
+                  <div className="border-2 border-dashed border-white/20 rounded-lg p-6 bg-white/5 hover:bg-white/10 transition-all">
+                    <div className="text-center">
+                      <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <div className="mt-4">
+                        <label htmlFor="file-upload" className="cursor-pointer">
+                          <span className="mt-2 block text-sm font-medium text-white">
+                            <span className="text-yellow-500 hover:text-yellow-400">Click to upload</span> or drag and drop
+                          </span>
+                          <span className="mt-1 block text-xs text-gray-400">
+                            PDF, JPEG, PNG files up to 10MB each
+                          </span>
+                        </label>
+                        <input
+                          id="file-upload"
+                          name="file-upload"
+                          type="file"
+                          multiple
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          onChange={handleFileUpload}
+                          className="sr-only"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Uploaded Files List */}
-                {legalDocuments.length > 0 && (
-                  <div className="mt-4 space-y-2">
-                    <h4 className="text-sm font-medium text-white">Uploaded Documents:</h4>
-                    {legalDocuments.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-white/10 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <svg className="h-5 w-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
-                          </svg>
-                          <div>
-                            <p className="text-sm font-medium text-white">{file.name}</p>
-                            <p className="text-xs text-gray-400">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                  {/* Uploaded Files List */}
+                  {legalDocuments.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      <h4 className="text-sm font-medium text-white">Uploaded Documents:</h4>
+                      {legalDocuments.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-white/10 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <svg className="h-5 w-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                            </svg>
+                            <div>
+                              <p className="text-sm font-medium text-white">{file.name}</p>
+                              <p className="text-xs text-gray-400">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                            </div>
                           </div>
+                          <button
+                            type="button"
+                            onClick={() => removeDocument(index)}
+                            className="text-red-400 hover:text-red-300 transition-colors"
+                          >
+                            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => removeDocument(index)}
-                          className="text-red-400 hover:text-red-300 transition-colors"
-                        >
-                          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
             )}
           </div>
+              )}
 
               {/* Submit Button */}
               <div className="pt-6">
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || blockchainLoading || (submissionType === 'blockchain' && !isConnected)}
                   className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-bold py-4 px-8 rounded-lg hover:from-yellow-600 hover:to-yellow-700 transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg"
                 >
-                  {loading ? (
+                  {loading || blockchainLoading ? (
                     <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"></div>
-                      Submitting Property...
+                      {submissionType === 'blockchain' ? 'Registering on Blockchain...' : 'Submitting Property...'}
                     </div>
                   ) : (
-                    'Submit Property Listing'
+                    submissionType === 'blockchain' ? 'Register Property on Blockchain' : 'Submit Property Listing'
                   )}
           </button>
               </div>

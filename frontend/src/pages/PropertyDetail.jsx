@@ -21,11 +21,13 @@ import {
   Bath,
   Car,
   Wifi,
-  
+  Wallet,
+  ExternalLink
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { useBlockchain } from '../components/BlockchainProvider.jsx';
 
 // Mock property data - in real app this would come from API
 const properties = [
@@ -80,9 +82,23 @@ const properties = [
 const PropertyDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { 
+    isConnected, 
+    account, 
+    properties: blockchainProperties, 
+    getPropertyDetails,
+    approvePurchase,
+    completePurchase,
+    loading,
+    error
+  } = useBlockchain();
+  
   const [property, setProperty] = useState(null);
+  const [blockchainProperty, setBlockchainProperty] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [ethPrice, setEthPrice] = useState(3420.5);
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
+  const [showApproveModal, setShowApproveModal] = useState(false);
 
   useEffect(() => {
     // Fetch real-time Ethereum price
@@ -103,7 +119,76 @@ const PropertyDetail = () => {
     // Find property by ID
     const foundProperty = properties.find(p => p.id === parseInt(id));
     setProperty(foundProperty);
-  }, [id]);
+
+    // Try to get blockchain property data
+    const fetchBlockchainProperty = async () => {
+      try {
+        const blockchainData = await getPropertyDetails(parseInt(id));
+        setBlockchainProperty(blockchainData);
+      } catch (error) {
+        console.log('Property not found on blockchain or error:', error);
+      }
+    };
+
+    if (isConnected) {
+      fetchBlockchainProperty();
+    }
+  }, [id, isConnected, getPropertyDetails]);
+
+  const handlePurchase = async () => {
+    if (!isConnected) {
+      alert('Please connect your wallet to purchase this property');
+      return;
+    }
+
+    if (!blockchainProperty) {
+      alert('Property not available on blockchain');
+      return;
+    }
+
+    try {
+      await completePurchase(parseInt(id), blockchainProperty.price);
+      setShowPurchaseModal(false);
+      // Refresh blockchain data
+      const updatedProperty = await getPropertyDetails(parseInt(id));
+      setBlockchainProperty(updatedProperty);
+    } catch (error) {
+      console.error('Purchase failed:', error);
+      alert('Purchase failed: ' + error.message);
+    }
+  };
+
+  const handleApprove = async (approval) => {
+    if (!isConnected) {
+      alert('Please connect your wallet to approve this transaction');
+      return;
+    }
+
+    try {
+      await approvePurchase(parseInt(id), approval);
+      setShowApproveModal(false);
+      // Refresh blockchain data
+      const updatedProperty = await getPropertyDetails(parseInt(id));
+      setBlockchainProperty(updatedProperty);
+    } catch (error) {
+      console.error('Approval failed:', error);
+      alert('Approval failed: ' + error.message);
+    }
+  };
+
+  const formatAddress = (address) => {
+    if (!address) return 'Unknown';
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
+  const isOwner = blockchainProperty && account && 
+    blockchainProperty.owner.toLowerCase() === account.toLowerCase();
+
+  const canPurchase = blockchainProperty && 
+    blockchainProperty.isForSale && 
+    blockchainProperty.aiApproved && 
+    blockchainProperty.buyerApproved && 
+    blockchainProperty.sellerApproved;
 
   if (!property) {
     return (
@@ -136,6 +221,12 @@ const PropertyDetail = () => {
               Back to Properties
             </Button>
             <div className="flex items-center space-x-4">
+              {blockchainProperty && (
+                <Badge className="bg-green-600 text-white">
+                  <Wallet className="w-3 h-3 mr-1" />
+                  On Blockchain
+                </Badge>
+              )}
               <Badge className="bg-yellow-600 text-black">
                 <Verified className="w-3 h-3 mr-1" />
                 AI Verified
@@ -161,7 +252,13 @@ const PropertyDetail = () => {
                     alt={property.title}
                     className="w-full h-96 object-cover rounded-t-lg"
                   />
-                  <div className="absolute top-4 left-4">
+                  <div className="absolute top-4 left-4 flex space-x-2">
+                    {blockchainProperty && (
+                      <Badge className="bg-green-600 text-white">
+                        <Wallet className="w-3 h-3 mr-1" />
+                        Blockchain
+                      </Badge>
+                    )}
                     <Badge className="bg-yellow-600 text-black">
                       <Verified className="w-3 h-3 mr-1" />
                       AI Verified
@@ -356,47 +453,100 @@ const PropertyDetail = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <Button className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold">
-                    Make Offer
-                  </Button>
-                  <Button variant="outline" className="w-full border-gray-600 text-gray-300 hover:bg-gray-800">
-                    Contact Owner
-                  </Button>
+                  {blockchainProperty && isConnected ? (
+                    <>
+                      {canPurchase ? (
+                        <Button 
+                          onClick={() => setShowPurchaseModal(true)}
+                          className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold"
+                          disabled={loading}
+                        >
+                          {loading ? 'Processing...' : 'Purchase Property'}
+                        </Button>
+                      ) : (
+                        <Button 
+                          onClick={() => setShowApproveModal(true)}
+                          className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold"
+                          disabled={loading}
+                        >
+                          {loading ? 'Processing...' : 'Approve Purchase'}
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <Button className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold">
+                        Make Offer
+                      </Button>
+                      <Button variant="outline" className="w-full border-gray-600 text-gray-300 hover:bg-gray-800">
+                        Contact Owner
+                      </Button>
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
             {/* Blockchain Info */}
-            <Card className="border-gray-800 bg-gray-900/80 backdrop-blur-md">
-              <CardHeader>
-                <CardTitle className="text-white">Blockchain Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Token ID:</span>
-                    <span className="text-white">{property.tokenId}</span>
+            {blockchainProperty && (
+              <Card className="border-gray-800 bg-gray-900/80 backdrop-blur-md">
+                <CardHeader>
+                  <CardTitle className="text-white">Blockchain Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Token ID:</span>
+                      <span className="text-white">#{id}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Owner:</span>
+                      <span className="text-white">{formatAddress(blockchainProperty.owner)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Price:</span>
+                      <span className="text-white">{blockchainProperty.price} ETH</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">For Sale:</span>
+                      <Badge variant={blockchainProperty.isForSale ? "default" : "secondary"}>
+                        {blockchainProperty.isForSale ? 'Yes' : 'No'}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Smart Contract:</span>
-                    <Badge className="bg-green-600 text-white">Active</Badge>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400 text-sm">AI Approved:</span>
+                      <Badge variant={blockchainProperty.aiApproved ? "default" : "secondary"}>
+                        {blockchainProperty.aiApproved ? 'Yes' : 'No'}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400 text-sm">Buyer Approved:</span>
+                      <Badge variant={blockchainProperty.buyerApproved ? "default" : "secondary"}>
+                        {blockchainProperty.buyerApproved ? 'Yes' : 'No'}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400 text-sm">Seller Approved:</span>
+                      <Badge variant={blockchainProperty.sellerApproved ? "default" : "secondary"}>
+                        {blockchainProperty.sellerApproved ? 'Yes' : 'No'}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">AI Validation:</span>
-                    <Badge className="bg-yellow-600 text-black">Verified</Badge>
+                  
+                  <div className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
+                    <div className="text-yellow-400 text-sm font-medium mb-1">Security Features</div>
+                    <div className="text-xs text-gray-300 space-y-1">
+                      <div>• Fraud detection active</div>
+                      <div>• Ownership verification</div>
+                      <div>• Transaction history</div>
+                    </div>
                   </div>
-                </div>
-                
-                <div className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
-                  <div className="text-yellow-400 text-sm font-medium mb-1">Security Features</div>
-                  <div className="text-xs text-gray-300 space-y-1">
-                    <div>• Fraud detection active</div>
-                    <div>• Ownership verification</div>
-                    <div>• Transaction history</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Market Analysis */}
             <Card className="border-gray-800 bg-gray-900/80 backdrop-blur-md">
@@ -426,6 +576,111 @@ const PropertyDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Purchase Modal */}
+      {showPurchaseModal && blockchainProperty && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-xl font-bold text-white mb-4">Purchase Property</h3>
+            <div className="space-y-4">
+              <div>
+                <p className="text-gray-300">Property #{id}</p>
+                <p className="text-white font-semibold">{property.title}</p>
+                <p className="text-yellow-400 font-bold">{blockchainProperty.price} ETH</p>
+                <p className="text-gray-400 text-sm">≈ ${(parseFloat(blockchainProperty.price) * ethPrice).toLocaleString()}</p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-300">AI Approved:</span>
+                  <Badge variant={blockchainProperty.aiApproved ? "default" : "secondary"}>
+                    {blockchainProperty.aiApproved ? 'Yes' : 'No'}
+                  </Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-300">Buyer Approved:</span>
+                  <Badge variant={blockchainProperty.buyerApproved ? "default" : "secondary"}>
+                    {blockchainProperty.buyerApproved ? 'Yes' : 'No'}
+                  </Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-300">Seller Approved:</span>
+                  <Badge variant={blockchainProperty.sellerApproved ? "default" : "secondary"}>
+                    {blockchainProperty.sellerApproved ? 'Yes' : 'No'}
+                  </Badge>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <Button 
+                  onClick={handlePurchase}
+                  disabled={loading}
+                  className="flex-1 bg-green-500 hover:bg-green-600"
+                >
+                  {loading ? 'Processing...' : 'Complete Purchase'}
+                </Button>
+                <Button 
+                  onClick={() => setShowPurchaseModal(false)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Approve Modal */}
+      {showApproveModal && blockchainProperty && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-xl font-bold text-white mb-4">Approve Purchase</h3>
+            <div className="space-y-4">
+              <div>
+                <p className="text-gray-300">Property #{id}</p>
+                <p className="text-white font-semibold">{property.title}</p>
+                <p className="text-yellow-400 font-bold">{blockchainProperty.price} ETH</p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-300">AI Approved:</span>
+                  <Badge variant={blockchainProperty.aiApproved ? "default" : "secondary"}>
+                    {blockchainProperty.aiApproved ? 'Yes' : 'No'}
+                  </Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-300">Buyer Approved:</span>
+                  <Badge variant={blockchainProperty.buyerApproved ? "default" : "secondary"}>
+                    {blockchainProperty.buyerApproved ? 'Yes' : 'No'}
+                  </Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-300">Seller Approved:</span>
+                  <Badge variant={blockchainProperty.sellerApproved ? "default" : "secondary"}>
+                    {blockchainProperty.sellerApproved ? 'Yes' : 'No'}
+                  </Badge>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <Button 
+                  onClick={() => handleApprove(true)}
+                  disabled={loading}
+                  className="flex-1 bg-green-500 hover:bg-green-600"
+                >
+                  {loading ? 'Processing...' : 'Approve'}
+                </Button>
+                <Button 
+                  onClick={() => setShowApproveModal(false)}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
