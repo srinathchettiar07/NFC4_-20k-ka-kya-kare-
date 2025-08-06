@@ -28,5 +28,5 @@ app.listen(port , ()=>
 {
     console.log("Server running on localhost : "+port);
     connectMongoDB();
-    connectPgDB();
+    // connectPgDB();
 })

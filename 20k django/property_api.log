@@ -1,0 +1,70 @@
+2025-08-06 02:39:41,659 - INFO - Database initialized successfully
+2025-08-06 02:39:41,659 - INFO - Received property submission: {
+  "title": "bussines",
+  "location": "vasai",
+  "price": 5000,
+  "sqft": 500,
+  "bedrooms": 2,
+  "bathrooms": 2,
+  "yearBuilt": 2016,
+  "description": "2 bhk super built",
+  "propertyType": "penthouse",
+  "image": "https://www.4cpl.tech/ast/uploads/2023/06/Web-Development.jpg",
+  "contactEmail": "sgafiq@gmail.com",
+  "contactPhone": "775888888"
+}
+2025-08-06 02:39:42,160 - INFO - Property saved successfully with ID: 1
+2025-08-06 02:44:53,203 - INFO - C:\Users\Rida\OneDrive\Desktop\20k-ka-kya-kare\20k django\home\views.py changed, reloading.
+2025-08-06 02:45:03,244 - INFO - C:\Users\Rida\OneDrive\Desktop\20k-ka-kya-kare\20k django\home\views.py changed, reloading.
+2025-08-06 02:45:12,430 - INFO - C:\Users\Rida\OneDrive\Desktop\20k-ka-kya-kare\20k django\home\property_api.py changed, reloading.
+2025-08-06 02:45:31,228 - INFO - C:\Users\Rida\OneDrive\Desktop\20k-ka-kya-kare\20k django\home\property_api.py changed, reloading.
+2025-08-06 02:45:38,665 - INFO - C:\Users\Rida\OneDrive\Desktop\20k-ka-kya-kare\20k django\hackathon\settings.py changed, reloading.
+2025-08-06 02:49:06,523 - INFO - C:\Users\Rida\OneDrive\Desktop\20k-ka-kya-kare\20k django\home\views.py changed, reloading.
+2025-08-06 02:49:14,737 - INFO - C:\Users\Rida\OneDrive\Desktop\20k-ka-kya-kare\20k django\home\property_api.py changed, reloading.
+2025-08-06 02:49:37,654 - INFO - C:\Users\Rida\OneDrive\Desktop\20k-ka-kya-kare\20k django\hackathon\settings.py changed, reloading.
+2025-08-06 02:50:01,374 - INFO - C:\Users\Rida\OneDrive\Desktop\20k-ka-kya-kare\20k django\hackathon\urls.py changed, reloading.
+2025-08-06 03:02:39,450 - INFO - Database initialized successfully
+2025-08-06 03:02:39,491 - INFO - Received property submission: {
+  "title": "3br property housing",
+  "location": "vasai",
+  "price": 500000,
+  "sqft": 500,
+  "bedrooms": 3,
+  "bathrooms": 2,
+  "yearBuilt": 2016,
+  "description": "luxury 3bhk house",
+  "propertyType": "apartment",
+  "image": "https://www.4cpl.tech/ast/uploads/2023/06/Web-Development.jpg",
+  "contactEmail": "your@gmail.com",
+  "contactPhone": "123",
+  "legal_documents": [
+    {
+      "original_name": "Document 20.pdf",
+      "file_path": "legal_documents/20250806_030239_Document 20.pdf",
+      "file_size": 221149,
+      "content_type": "application/pdf"
+    }
+  ]
+}
+2025-08-06 03:02:39,541 - ERROR - Error saving property: table properties has no column named legal_documents
+2025-08-06 03:02:39,600 - WARNING - Bad Request: /api/properties/
+2025-08-06 03:05:06,951 - INFO - Database initialized successfully
+2025-08-06 03:05:06,952 - INFO - Received property submission: {
+  "title": "3br property housing",
+  "location": "vasai",
+  "price": 500000,
+  "sqft": 500,
+  "bedrooms": 3,
+  "bathrooms": 2,
+  "yearBuilt": 2016,
+  "description": "luxury 3bhk house",
+  "propertyType": "apartment",
+  "image": "https://www.4cpl.tech/ast/uploads/2023/06/Web-Development.jpg",
+  "contactEmail": "your@gmail.com",
+  "contactPhone": "123",
+  "legal_documents": []
+}
+2025-08-06 03:05:06,958 - ERROR - Error saving property: table properties has no column named legal_documents
+2025-08-06 03:05:06,961 - WARNING - Bad Request: /api/properties/
+2025-08-06 03:08:46,012 - INFO - C:\Users\Rida\OneDrive\Desktop\20k-ka-kya-kare\20k django\home\views.py changed, reloading.
+2025-08-06 03:08:46,119 - INFO - C:\Users\Rida\OneDrive\Desktop\20k-ka-kya-kare\20k django\home\views.py changed, reloading.

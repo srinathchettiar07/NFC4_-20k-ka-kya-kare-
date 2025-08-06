@@ -8,6 +8,7 @@ import { Badge } from "../components/ui/badge.jsx"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select.jsx"
 import { gsap } from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { useNavigate } from "react-router-dom"
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger)
@@ -30,6 +31,10 @@ const properties = [
     bathrooms: 2,
     yearBuilt: 2020,
     views: 1247,
+    description: "Luxurious penthouse with panoramic city views, smart home technology, and premium amenities.",
+    features: ["Smart Home", "Rooftop Terrace", "Gym", "Concierge"],
+    propertyType: "Penthouse",
+    status: "For Sale"
   },
   {
     id: 2,
@@ -48,6 +53,10 @@ const properties = [
     bathrooms: 4,
     yearBuilt: 2018,
     views: 2156,
+    description: "Stunning beachfront villa with private beach access, infinity pool, and ocean views.",
+    features: ["Private Beach", "Infinity Pool", "Wine Cellar", "Helipad"],
+    propertyType: "Villa",
+    status: "For Sale"
   },
   {
     id: 3,
@@ -66,6 +75,10 @@ const properties = [
     bathrooms: 8,
     yearBuilt: 2019,
     views: 892,
+    description: "Modern office complex with state-of-the-art facilities and prime downtown location.",
+    features: ["Conference Center", "Parking Garage", "Security System", "Fitness Center"],
+    propertyType: "Office Complex",
+    status: "For Sale"
   },
   {
     id: 4,
@@ -84,6 +97,10 @@ const properties = [
     bathrooms: 3,
     yearBuilt: 1895,
     views: 743,
+    description: "Beautifully restored historic brownstone with modern amenities and classic architecture.",
+    features: ["Historic Charm", "Garden", "Fireplace", "Hardwood Floors"],
+    propertyType: "Brownstone",
+    status: "For Sale"
   },
   {
     id: 5,
@@ -102,6 +119,10 @@ const properties = [
     bathrooms: 2,
     yearBuilt: 1985,
     views: 456,
+    description: "Large industrial warehouse with loading docks and ample storage space.",
+    features: ["Loading Docks", "High Ceilings", "Security System", "Office Space"],
+    propertyType: "Warehouse",
+    status: "For Sale"
   },
   {
     id: 6,
@@ -120,6 +141,10 @@ const properties = [
     bathrooms: 3,
     yearBuilt: 2021,
     views: 1834,
+    description: "Luxurious mountain cabin with stunning views and modern amenities.",
+    features: ["Mountain Views", "Hot Tub", "Fireplace", "Ski Storage"],
+    propertyType: "Cabin",
+    status: "For Sale"
   },
 ]
 
@@ -171,12 +196,12 @@ const AnimatedCounter = ({ end, duration = 2, prefix = "", suffix = "" }) => {
   )
 }
 
-export const Home = () => {
+const Home = () => {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedType, setSelectedType] = useState("all")
   const [priceRange, setPriceRange] = useState("all")
   const [sortBy, setSortBy] = useState("newest")
-  const [ethPrice, setEthPrice] = useState(3420.5)
+  const navigate = useNavigate()
 
   const heroRef = useRef(null)
   const titleRef = useRef(null)
@@ -185,16 +210,6 @@ export const Home = () => {
   const featuresRef = useRef(null)
   const ethBoxRef = useRef(null)
   const floatingElementsRef = useRef(null)
-
-  useEffect(() => {
-    // Animate ETH price changes
-    const interval = setInterval(() => {
-      const change = (Math.random() - 0.5) * 50
-      setEthPrice((prev) => Math.max(3000, prev + change))
-    }, 3000)
-
-    return () => clearInterval(interval)
-  }, [])
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -288,39 +303,50 @@ export const Home = () => {
     return matchesSearch && matchesType
   })
 
+  const handlePropertyClick = (propertyId) => {
+    navigate(`/property/${propertyId}`)
+  }
+
   return (
-    <div className="min-h-screen bg-black overflow-x-hidden px-6 py-2">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-x-hidden">
       {/* Header */}
-      <header className="bg-black/90 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50">
+      <header className="bg-black/95 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center">
-                <Building className="w-5 h-5 text-black" />
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Building className="w-6 h-6 text-black" />
               </div>
-              <span className="text-xl font-bold text-white">RealEstateChain</span>
+              <div>
+                <span className="text-xl font-bold text-white">RealEstateChain</span>
+                <div className="text-xs text-yellow-500">Blockchain Real Estate</div>
+              </div>
             </div>
             <nav className="hidden md:flex items-center space-x-8">
-              <a href="#" className="text-gray-300 hover:text-white transition-colors">
+              <a href="#" className="text-gray-300 hover:text-yellow-500 transition-colors font-medium">
                 Properties
               </a>
-              <a href="#" className="text-gray-300 hover:text-white transition-colors">
+              <a href="#" className="text-gray-300 hover:text-yellow-500 transition-colors font-medium">
                 Analytics
               </a>
-              <a href="#" className="text-gray-300 hover:text-white transition-colors">
+              <a href="#" className="text-gray-300 hover:text-yellow-500 transition-colors font-medium">
                 Portfolio
               </a>
+              <a href="#" className="text-gray-300 hover:text-yellow-500 transition-colors font-medium">
+                About
+              </a>
             </nav>
-            <Button className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold">
-              Get Started
+            <Button 
+              onClick={() => navigate("/addproperty")}  
+              className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold px-6 py-2 rounded-lg shadow-lg transform hover:scale-105 transition-all duration-300"
+            >
+              List Property
             </Button>
           </div>
         </div>
       </header>
 
-      {/* Enhanced Hero Section with Animations */}
-      <section ref={heroRef} className="relative min-h-screen bg-black overflow-hidden">
-        {/* Animated Background Elements */}
+      <section ref={heroRef} className="relative min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-hidden">
         <div ref={floatingElementsRef} className="absolute inset-0 pointer-events-none">
           <div className="absolute top-20 left-10 w-32 h-32 bg-yellow-500 rounded-full opacity-5"></div>
           <div className="absolute top-40 right-20 w-24 h-24 bg-yellow-400 rounded-full opacity-5"></div>
@@ -331,7 +357,6 @@ export const Home = () => {
 
         <div className="container mx-auto px-4 py-12">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center min-h-[80vh]">
-            {/* Hero Content - Left Side */}
             <div className="lg:col-span-2 relative z-10">
               <div className="space-y-8">
                 <h1 ref={titleRef} className="text-5xl md:text-7xl font-bold text-white leading-tight">
@@ -343,17 +368,17 @@ export const Home = () => {
                 </h1>
 
                 <p ref={subtitleRef} className="text-xl md:text-2xl text-gray-300 leading-relaxed max-w-3xl">
-                  Transform property transactions through decentralized systems, smart contracts, and immutable ledgers.
-                  Experience secure, transparent, and efficient real estate ownership with AI-powered validation.
+                  Experience the future of property ownership with secure, transparent, and efficient blockchain-based real estate transactions. 
+                  AI-powered validation ensures every transaction is fraud-free and legitimate.
                 </p>
 
                 <div ref={buttonsRef} className="flex flex-col sm:flex-row gap-4">
                   <Button
                     size="lg"
-                    className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black px-8 py-4 text-lg transform hover:scale-105 transition-all duration-300 font-semibold"
-                   Navigate to="/explore">
+                    className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black px-8 py-4 text-lg transform hover:scale-105 transition-all duration-300 font-semibold shadow-xl"
+                  >
                     <Zap className="w-5 h-5 mr-2" />
-                    get
+                    Explore Properties
                   </Button>
                   <Button
                     size="lg"
@@ -361,11 +386,11 @@ export const Home = () => {
                     className="border-2 border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-black bg-transparent px-8 py-4 text-lg transform hover:scale-105 transition-all duration-300 font-semibold"
                   >
                     <Globe className="w-5 h-5 mr-2" />
-                    Learn Blockchain Real Estate
+                    Learn More
                   </Button>
                 </div>
 
-                {/* Animated Key Features */}
+                {/* Enhanced Key Features */}
                 <div ref={featuresRef} className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16">
                   <FloatingElement delay={0}>
                     <div className="text-center group cursor-pointer">
@@ -418,7 +443,7 @@ export const Home = () => {
               </div>
             </div>
 
-            {/* Enhanced ETH Price Box - Right Side */}
+            {/* Simplified ETH Price Box - Right Side */}
             <div ref={ethBoxRef} className="lg:col-span-1 relative z-10">
               <div className="space-y-6">
                 <FloatingElement duration={8}>
@@ -434,9 +459,9 @@ export const Home = () => {
                     <CardContent className="space-y-6">
                       <div>
                         <div className="text-4xl font-bold text-white">
-                          $<AnimatedCounter end={ethPrice} />
+                          $3,420.50
                         </div>
-                        <div className="text-sm text-yellow-500 font-medium flex items-center">
+                        <div className="text-sm text-green-500 font-medium flex items-center">
                           <TrendingUp className="w-4 h-4 mr-1" />
                           +2.4% (24h)
                         </div>
@@ -538,7 +563,7 @@ export const Home = () => {
       </section>
 
       {/* Search and Filters */}
-      <section className="bg-gray-900 py-8 border-b border-gray-800 sticky top-[73px] z-40">
+      <section className="bg-gray-900/50 py-8 border-b border-gray-800 sticky top-[73px] z-40 backdrop-blur-sm">
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
             <div className="relative flex-1 max-w-md">
@@ -547,12 +572,12 @@ export const Home = () => {
                 placeholder="Search by location or property name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 border-gray-700 bg-gray-800 text-white focus:border-yellow-500 focus:ring-yellow-500"
+                className="pl-10 border-gray-700 bg-gray-800/50 text-white focus:border-yellow-500 focus:ring-yellow-500 backdrop-blur-sm"
               />
             </div>
             <div className="flex gap-3">
               <Select value={selectedType} onValueChange={setSelectedType}>
-                <SelectTrigger className="w-40 border-gray-700 bg-gray-800 text-white">
+                <SelectTrigger className="w-40 border-gray-700 bg-gray-800/50 text-white backdrop-blur-sm">
                   <SelectValue placeholder="Property Type" />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-700">
@@ -571,7 +596,7 @@ export const Home = () => {
                 </SelectContent>
               </Select>
               <Select value={priceRange} onValueChange={setPriceRange}>
-                <SelectTrigger className="w-40 border-gray-700 bg-gray-800 text-white">
+                <SelectTrigger className="w-40 border-gray-700 bg-gray-800/50 text-white backdrop-blur-sm">
                   <SelectValue placeholder="Price Range" />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-700">
@@ -590,7 +615,7 @@ export const Home = () => {
                 </SelectContent>
               </Select>
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-40 border-gray-700 bg-gray-800 text-white">
+                <SelectTrigger className="w-40 border-gray-700 bg-gray-800/50 text-white backdrop-blur-sm">
                   <SelectValue placeholder="Sort By" />
                 </SelectTrigger>
                 <SelectContent className="bg-gray-800 border-gray-700">
@@ -614,11 +639,11 @@ export const Home = () => {
       </section>
 
       {/* Properties Grid */}
-      <section className="py-12 properties-section bg-black">
+      <section className="py-12 properties-section bg-gradient-to-br from-gray-900 via-black to-gray-900">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h2 className="text-3xl font-bold text-white mb-2">Tokenized Real Estate Properties</h2>
+              <h2 className="text-3xl font-bold text-white mb-2">Featured Properties</h2>
               <p className="text-gray-300">Secure, transparent property ownership through blockchain technology</p>
             </div>
             <div className="text-right">
@@ -631,7 +656,8 @@ export const Home = () => {
             {filteredProperties.map((property) => (
               <Card
                 key={property.id}
-                className="property-card border-gray-800 bg-gray-900/80 backdrop-blur-md hover:shadow-xl transition-all duration-500 cursor-pointer group transform hover:-translate-y-2"
+                className="property-card border-gray-800 bg-gray-900/80 backdrop-blur-md hover:shadow-2xl transition-all duration-500 cursor-pointer group transform hover:-translate-y-2"
+                onClick={() => handlePropertyClick(property.id)}
               >
                 <div className="relative overflow-hidden">
                   <img
@@ -720,7 +746,7 @@ export const Home = () => {
 
                     <div className="flex gap-2">
                       <Button className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black transform hover:scale-105 transition-all duration-300 font-semibold">
-                        View Smart Contract
+                        View Details
                       </Button>
                       <Button
                         variant="outline"
@@ -764,4 +790,5 @@ export const Home = () => {
     </div>
   )
 }
+
 export default Home
